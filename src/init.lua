@@ -1,8 +1,7 @@
 --!strict
 
 --// Packages
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Signal = require(ReplicatedStorage.Packages.Signal)
+local Signal = require(script.Parent.Signal)
 type Signal<Param...> = Signal.Signal<Param...>
 
 --[=[

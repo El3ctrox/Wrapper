@@ -1,14 +1,4 @@
 {
   "name": "Wrapper",
-  "tree": {
-    "$className": "DataModel",
-    
-    "ReplicatedStorage": {
-      "Packages": {
-        "$className": "Folder",
-        
-        "Wrapper": { "$path": "src" }
-      }
-    }
-  }
+  "tree": { "$path": "src" }
 }
