@@ -21,7 +21,7 @@ local function wrapper(instance: Instance,...: string)
     for _,tag in tags do instance:AddTag(tag) end
     
     local meta = { __metatable = "locked" }
-    local self = setmetatable({ roblox = instance }, meta)
+    local self = setmetatable({ roblox = instance } :: { [string]: any }, meta)
     local attributeChangedSignals = {} :: { [string]: Signal<any> }
     local instanceVisualizers = {} :: { [string]: ObjectValue }
     local compoundAttributes = {}
@@ -162,33 +162,30 @@ local function wrapper(instance: Instance,...: string)
         return self:_host(Signal.new(name))
     end
     
+    local function setupObjectVisualizer(name: string, object: Instance)
+        
+        local visualizer = instanceVisualizers[name]
+        if nil == visualizer then
+            
+            visualizer = Instance.new("ObjectValue")
+            visualizer.Name = name
+            self:_host(visualizer)
+        end
+        
+        visualizer.Value = object --will call by .Changed visualizeObjectValue()
+    end
+    
     --// Metamethods
     function meta:__newindex(index: string, value: any)
         
-        if typeof(value) == "Instance" then
-            
-            local visualizer = instanceVisualizers[index]
-            if not visualizer then
-                
-                visualizer = Instance.new("ObjectValue")
-                visualizer.Name = index
-                self:_host(visualizer)
-            end
-            
-            visualizer.Value = value
-            --visualizeObjectValue()
-            
+        if typeof(value) == "Instance" then setupObjectVisualizer(index, value)
+        elseif typeof(value) == "table" and rawget(value, "roblox") then setupObjectVisualizer(index, value.roblox)
         elseif type(value) == "function" or type(value) == "table" or typeof(value) == "userdata" or type(value) == "thread" then
             
             local attributeChangedSignal = attributeChangedSignals[index]
-            if attributeChangedSignal then
-                
-                compoundAttributes[index] = value
-                attributeChangedSignal:_emit(value)
-            else
-                
-                rawset(self, index, value)
-            end
+            if attributeChangedSignal then attributeChangedSignal:_emit(value) end
+            
+            compoundAttributes[index] = value
         else
             
             instance:SetAttribute(index, value)
