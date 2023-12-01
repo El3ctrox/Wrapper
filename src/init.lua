@@ -150,6 +150,21 @@ local function wrapper(instance: Instance,...: string)
         return self
     end
     --[=[
+        @within Wrapper
+        @method _addTags
+        @params ... string -- tags
+        
+        Add all given tags to wrapped instance, when :unwrap'ed, the tags will be removed.
+        Useful for inheritance
+    ]=]
+    function self:_addTags(...: string)
+        
+        table.move({...}, 1, select('#',...), #tags, tags)
+        for _,tag in {...} do instance:AddTag(tag) end
+        
+        return self
+    end
+    --[=[
         @within wrapper
         @method _signal
         @param name string

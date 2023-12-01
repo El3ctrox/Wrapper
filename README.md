@@ -16,8 +16,10 @@ function Minion.deserialize(data: data)
     local asset = MinionModels[data.name]
     local model = asset:Clone()
     
-    local self = wrapper(model)
+    local self = wrapper(model, 'Minion')   -- add tag Minion to model
         :_syncAttributes(data)  -- all fields of `data` can be read and written from `self`, all fields will appear in `model` as attributes, and modifications from `self` will be applied to `data`
+    
+    print(self:is('Minion'))    --> true, 
     
     self.health = self.maxHealth -- automaticly defines a attribute into `model` with value of `self.maxHealth`
     self.targetPosition = Instance.new("Attachment", WORLD_ROOT)    -- automaticly creates a ObjectValue into `model`
