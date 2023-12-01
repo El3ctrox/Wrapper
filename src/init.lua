@@ -33,7 +33,7 @@ local function wrapper(instance: Instance,...: string)
         @param attribute string
         @return Signal
         
-        Create a signal that is called when attribute is changed
+        Create a signal that is called when attribute is changed.
     ]=]
     function self:listenChange(attribute: string): Signal<any>
         
@@ -51,8 +51,9 @@ local function wrapper(instance: Instance,...: string)
     --[=[
         @within wrapper
         @method cleaner
+        @return () -> ()    -- for cleaner cancellation
         
-        Add a callback to be called when :unwrap, and returns a function to cancel this callback
+        Add a callback to be called when :unwrap, and returns a function to cancel this callback.
     ]=]
     function self:cleaner(cleaner: () -> ()): () -> ()
         
@@ -105,7 +106,7 @@ local function wrapper(instance: Instance,...: string)
         @param child wrapper|Instance|RBXScriptConnection|Connection    -- element to be hosted
         @return Instance|RBXScriptConnection|Connection -- the element received
         
-        Receives an instance or connection to be destroyed together this wrapper, and sets the instance parent to self/
+        Receives an instance or connection to be destroyed together this wrapper, and sets the instance parent to self.
         Useful to avoid memory leaks.
     ]=]
     function self:_host<child>(child: child & ({ roblox: Instance }|Instance|RBXScriptConnection|Signal.Connection)): child
@@ -135,7 +136,7 @@ local function wrapper(instance: Instance,...: string)
         @method _syncAttributes
         @params attributes table
         
-        Set all given data as attributes for the wrapped instance, and sync attributes with data
+        Set all given data as attributes for the wrapped instance, and sync attributes with data.
     ]=]
     function self:_syncAttributes(data: { [string]: any })
         
@@ -170,7 +171,7 @@ local function wrapper(instance: Instance,...: string)
         @param name string
         @return Signal<...any>
         
-        Create a signal within this wrapper, just a shorthand for create signals
+        Create a signal within this wrapper, just a shorthand for create signals.
     ]=]
     function self:_signal(name: string): Signal<...any>
         
