@@ -47,6 +47,21 @@ local function wrapper(instance: Instance,...: string)
         
         return attributeChangedSignals[attribute]
     end
+    --[=[
+        @within Wrapper
+        @method addTags
+        @params ... string -- tags
+        
+        Add all given tags to wrapped instance, when :unwrap'ed, the tags will be removed.
+        Useful for inheritance
+    ]=]
+    function self:addTags(...: string)
+        
+        table.move({...}, 1, select('#',...), #tags, tags)
+        for _,tag in {...} do instance:AddTag(tag) end
+        
+        return self
+    end
     
     --[=[
         @within wrapper
@@ -147,21 +162,6 @@ local function wrapper(instance: Instance,...: string)
             
             self:listenChange(attributeName):connect(function(newValue) data[attributeName] = newValue end)
         end
-        
-        return self
-    end
-    --[=[
-        @within Wrapper
-        @method _addTags
-        @params ... string -- tags
-        
-        Add all given tags to wrapped instance, when :unwrap'ed, the tags will be removed.
-        Useful for inheritance
-    ]=]
-    function self:_addTags(...: string)
-        
-        table.move({...}, 1, select('#',...), #tags, tags)
-        for _,tag in {...} do instance:AddTag(tag) end
         
         return self
     end
