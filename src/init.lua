@@ -57,7 +57,7 @@ local function wrapper(instance: Instance,...: string)
     ]=]
     function self:addTags(...: string)
         
-        table.move({...}, 1, select('#',...), #tags, tags)
+        table.move({...}, 1, select('#',...), #tags+1, tags)
         for _,tag in {...} do instance:AddTag(tag) end
         
         return self
