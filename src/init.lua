@@ -62,6 +62,40 @@ local function wrapper(instance: Instance,...: string)
         
         return self
     end
+    --[=[
+        @within Wrapper
+        @method hasTags
+        @params ... string -- tags
+        
+        Check if all given tags was added to wrapped instance.
+        Useful for type check
+    ]=]
+    function self:hasTags(...: string): boolean
+        
+        for _,tag in {...} do
+            
+            if not instance:HasTag(tag) then return false end
+        end
+        
+        return true
+    end
+    --[=[
+        @within Wrapper
+        @method is
+        @params ... string -- tags
+        
+        Check if all given tags was added from this wrapper.
+        Useful for type check
+    ]=]
+    function self:is(...: string): boolean
+        
+        for _,tag in {...} do
+            
+            if not table.find(tags, tag) then return false end
+        end
+        
+        return true
+    end
     
     --[=[
         @within wrapper
