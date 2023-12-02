@@ -212,7 +212,7 @@ local function wrapper(instance: Instance,...: string)
         return self:_host(Signal.new(name))
     end
     
-    local function setupObjectVisualizer(name: string, object: Instance)
+    local function visualizeObject(name: string, object: Instance)
         
         local visualizer = instanceVisualizers[name]
         if nil == visualizer then
@@ -228,14 +228,25 @@ local function wrapper(instance: Instance,...: string)
     --// Metamethods
     function meta:__newindex(index: string, value: any)
         
-        if typeof(value) == "Instance" then setupObjectVisualizer(index, value)
-        elseif typeof(value) == "table" and rawget(value, "roblox") then setupObjectVisualizer(index, value.roblox)
+        if value == nil and instanceVisualizers[index] then
+            
+            instanceVisualizers[index].Value = nil
+            
+        elseif typeof(value) == "table" and rawget(value, "roblox") then
+            
+            compoundAttributes[index] = value
+            visualizeObject(index, value.roblox)
+            
+        elseif typeof(value) == "Instance" then
+            
+            visualizeObject(index, value)
+            
         elseif type(value) == "function" or type(value) == "table" or typeof(value) == "userdata" or type(value) == "thread" then
+            
+            compoundAttributes[index] = value
             
             local attributeChangedSignal = attributeChangedSignals[index]
             if attributeChangedSignal then attributeChangedSignal:_emit(value) end
-            
-            compoundAttributes[index] = value
         else
             
             instance:SetAttribute(index, value)
@@ -254,25 +265,28 @@ local function wrapper(instance: Instance,...: string)
     end
     
     --// Listeners
-    local function visualizeObjectValue(objectValue: Instance)
+    local function setupVisualizer(objectValue: Instance, initCompute: boolean?)
         
         if not objectValue:IsA("ObjectValue") then return end
         local name = objectValue.Name
         
         local function compute()
             
+            local value = compoundAttributes[name]
+            if type(value) == "table" and rawget(value, "roblox") == objectValue.Value then return end
+            
             compoundAttributes[name] = objectValue.Value
             
             local changedSignal = attributeChangedSignals[name]
             if changedSignal then changedSignal:_emit(objectValue.Value) end
         end
-        objectValue:GetPropertyChangedSignal("Value"):Connect(function() compute() end)
-        compute()
+        objectValue:GetPropertyChangedSignal("Value"):Connect(compute)
+        if initCompute then compute() end
         
         instanceVisualizers[name] = objectValue
     end
-    for _,objectValue in instance:GetChildren() do visualizeObjectValue(objectValue) end
-    instance.ChildAdded:Connect(visualizeObjectValue)
+    for _,objectValue in instance:GetChildren() do setupVisualizer(objectValue, true) end
+    instance.ChildAdded:Connect(setupVisualizer)
     
     instance.Destroying:Connect(function() self:unwrap() end)
     
