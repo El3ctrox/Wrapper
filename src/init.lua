@@ -35,14 +35,21 @@ local function wrapper(instance: Instance,...: string)
         
         Create a signal that is called when attribute is changed.
     ]=]
-    function self:listenChange(attribute: string): Signal<any>
+    function self:listenChange(attribute: string): Signal<any, any>
         
         if not attributeChangedSignals[attribute] then
             
+            local lastValue = instance:GetAttribute(attribute)
             local signal = Signal.new(`{attribute}Changed`)
             attributeChangedSignals[attribute] = signal
             
-            instance:GetAttributeChangedSignal(attribute):Connect(function() signal:_emit(instance:GetAttribute(attribute)) end)
+            instance:GetAttributeChangedSignal(attribute):Connect(function()
+                
+                local newValue = instance:GetAttribute(attribute)
+                
+                signal:_emit(newValue, lastValue)
+                lastValue = newValue
+            end)
         end
         
         return attributeChangedSignals[attribute]
@@ -218,7 +225,7 @@ local function wrapper(instance: Instance,...: string)
         return self:_host(Signal.new(name))
     end
     
-    local function visualizeObject(name: string, object: Instance)
+    local function visualizeObject(name: string, object: Instance?)
         
         local visualizer = instanceVisualizers[name]
         if nil == visualizer then
@@ -249,10 +256,13 @@ local function wrapper(instance: Instance,...: string)
             
         elseif type(value) == "function" or type(value) == "table" or typeof(value) == "userdata" or type(value) == "thread" then
             
+            local lastValue = compoundAttributes[index]
             compoundAttributes[index] = value
             
             local attributeChangedSignal = attributeChangedSignals[index]
-            if attributeChangedSignal then attributeChangedSignal:_emit(value) end
+            if attributeChangedSignal then attributeChangedSignal:_emit(value, lastValue) end
+            
+            if type(value) == "table" and rawget(value, "roblox") then visualizeObject(index, value.roblox) end
         else
             
             instance:SetAttribute(index, value)
@@ -284,7 +294,7 @@ local function wrapper(instance: Instance,...: string)
             compoundAttributes[name] = objectValue.Value
             
             local changedSignal = attributeChangedSignals[name]
-            if changedSignal then changedSignal:_emit(objectValue.Value) end
+            if changedSignal then changedSignal:_emit(objectValue.Value, value) end
         end
         objectValue:GetPropertyChangedSignal("Value"):Connect(compute)
         if initCompute then compute() end
