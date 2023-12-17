@@ -235,26 +235,15 @@ local function wrapper(instance: Instance,...: string)
             self:_host(visualizer)
         end
         
-        visualizer.Value = object --will call by .Changed visualizeObjectValue()
+        visualizer.Value = object --will call visualizeObjectValue() by .Changed
     end
     
     --// Metamethods
     function meta:__newindex(index: string, value: any)
         
-        if value == nil and instanceVisualizers[index] then
-            
-            instanceVisualizers[index].Value = nil
-            
-        elseif typeof(value) == "table" and rawget(value, "roblox") then
-            
-            compoundAttributes[index] = value
-            visualizeObject(index, value.roblox)
-            
-        elseif typeof(value) == "Instance" then
-            
-            visualizeObject(index, value)
-            
-        elseif type(value) == "function" or type(value) == "table" or typeof(value) == "userdata" or type(value) == "thread" then
+        if value == nil and instanceVisualizers[index] then visualizeObject(index, nil)
+        elseif typeof(value) == "Instance" then visualizeObject(index, value)
+        elseif type(value) == "function" or type(value) == "table" or typeof(value) == "userdata" or type(value) == "thread" or type(value) == "buffer" then
             
             local lastValue = compoundAttributes[index]
             compoundAttributes[index] = value
