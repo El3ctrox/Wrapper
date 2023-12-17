@@ -298,6 +298,21 @@ local function wrapper(instance: Instance,...: string)
     --// End
     return self, meta
 end
+export type _wrapper<instance> = wrapper<instance> & {
+    _host: <child>(any, child: child) -> child,
+    _syncAttributes: (any, data: { [string]: any }) -> _wrapper<instance>,
+    _signal: (any, name: string) -> Signal<...any>,
+}
+export type wrapper<instance> = {
+    listenChange: (any, attribute: string) -> Signal<any, any>,
+    addTags: (any, ...string) -> wrapper<instance>,
+    hasTags: (any, ...string) -> boolean,
+    is: (any, ...string) -> boolean,
+    cleaner: (any, cleaner: () -> ()) -> () -> (),
+    destroy: (any) -> (),
+    unwrap: (any) -> (),
+    roblox: instance,
+}
 
 --// End
 return wrapper
