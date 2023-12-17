@@ -152,13 +152,13 @@ local function wrapper(instance: Instance,...: string)
     --[=[
         @within wrapper
         @method _host
-        @param child wrapper|Instance|RBXScriptConnection|Connection    -- element to be hosted
+        @param child { destroy: function?, Destroy: function?, cancel: function?, Cancel: function? }|Instance|RBXScriptConnection|Connection|thread    -- element to be hosted
         @return Instance|RBXScriptConnection|Connection -- the element received
         
         Receives an instance or connection to be destroyed together this wrapper, and sets the instance parent to self.
         Useful to avoid memory leaks.
     ]=]
-    function self:_host<child>(child: child & ({ roblox: Instance }|Instance|RBXScriptConnection|Signal.Connection)): child
+    function self:_host<child>(child: child): child
         
         local unwrappedChild = if typeof(child) == "table" and rawget(child, "roblox")
             then child.roblox :: Instance
@@ -167,8 +167,14 @@ local function wrapper(instance: Instance,...: string)
         local cancelClean = self:cleaner(function()
             
             if typeof(unwrappedChild) == "Instance" then unwrappedChild:Destroy()
+            elseif typeof(unwrappedChild) == "thread" then task.cancel(unwrappedChild)
             elseif typeof(unwrappedChild) == "RBXScriptConnection" then unwrappedChild:Disconnect()
-            elseif typeof(rawget(unwrappedChild, "destroy")) == "function" then unwrappedChild:destroy()
+            elseif typeof(unwrappedChild) == "table" then
+                if typeof(rawget(unwrappedChild, "destroy")) == "function" then unwrappedChild:destroy()
+                elseif typeof(rawget(unwrappedChild, "cancel")) == "function" then unwrappedChild:cancel()
+                elseif typeof(rawget(unwrappedChild, "Destroy")) == "function" then unwrappedChild:Destroy()
+                elseif typeof(rawget(unwrappedChild, "Cancel")) == "function" then unwrappedChild:Cancel()
+                end
             end
         end)
         
