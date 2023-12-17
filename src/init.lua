@@ -173,9 +173,9 @@ local function wrapper(instance: Instance,...: string)
         
         local cancelClean = self:cleaner(function()
             
-            if typeof(unwrappedChild) == "Instance" then unwrappedChild:Destroy()
-            elseif typeof(unwrappedChild) == "thread" then task.cancel(unwrappedChild)
+            if typeof(unwrappedChild) == "thread" then if coroutine.status(unwrappedChild) ~= 'normal' then coroutine.close(unwrappedChild) end
             elseif typeof(unwrappedChild) == "RBXScriptConnection" then unwrappedChild:Disconnect()
+            elseif typeof(unwrappedChild) == "Instance" then unwrappedChild:Destroy()
             elseif typeof(unwrappedChild) == "table" then
                 if typeof(rawget(unwrappedChild, "destroy")) == "function" then unwrappedChild:destroy()
                 elseif typeof(rawget(unwrappedChild, "cancel")) == "function" then unwrappedChild:cancel()
