@@ -251,7 +251,11 @@ local function wrapper(instance: Instance,...: string)
             local attributeChangedSignal = attributeChangedSignals[index]
             if attributeChangedSignal then attributeChangedSignal:_emit(value, lastValue) end
             
-            if type(value) == "table" and rawget(value, "roblox") then visualizeObject(index, value.roblox) end
+            --// Visualize
+            if type(value) ~= "table" then return end
+            if not rawget(value, "roblox") then return end
+            if value.roblox.Parent == instance then return end
+            visualizeObject(index, value.roblox)
         else
             
             instance:SetAttribute(index, value)
