@@ -235,7 +235,7 @@ local function wrapper(instance: Instance,...: string)
             self:_host(visualizer)
         end
         
-        visualizer.Value = object --will call visualizeObjectValue() by .Changed
+        visualizer.Value = object --will call watchVisualizer->compute() by .Changed
     end
     
     --// Metamethods
@@ -270,7 +270,7 @@ local function wrapper(instance: Instance,...: string)
     end
     
     --// Listeners
-    local function setupVisualizer(objectValue: Instance, initCompute: boolean?)
+    local function watchVisualizer(objectValue: Instance, initCompute: boolean?)
         
         if not objectValue:IsA("ObjectValue") then return end
         local name = objectValue.Name
@@ -290,8 +290,8 @@ local function wrapper(instance: Instance,...: string)
         
         instanceVisualizers[name] = objectValue
     end
-    for _,objectValue in instance:GetChildren() do setupVisualizer(objectValue, true) end
-    instance.ChildAdded:Connect(setupVisualizer)
+    for _,objectValue in instance:GetChildren() do watchVisualizer(objectValue, true) end
+    instance.ChildAdded:Connect(watchVisualizer)
     
     instance.Destroying:Connect(function() self:unwrap() end)
     
