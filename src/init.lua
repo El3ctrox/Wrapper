@@ -296,14 +296,14 @@ local function wrapper(instance: Instance,...: string)
     instance.Destroying:Connect(function() self:unwrap() end)
     
     --// End
-    return self, meta
+    return (self :: any) :: _wrapper, meta
 end
-export type _wrapper<instance> = wrapper<instance> & {
+export type _wrapper<instance = Instance> = wrapper<instance> & {
     _host: <child>(any, child: child) -> child,
     _syncAttributes: (any, data: { [string]: any }) -> _wrapper<instance>,
     _signal: (any, name: string) -> Signal<...any>,
 }
-export type wrapper<instance> = {
+export type wrapper<instance = Instance> = {
     listenChange: (any, attribute: string) -> Signal<any, any>,
     addTags: (any, ...string) -> wrapper<instance>,
     hasTags: (any, ...string) -> boolean,
