@@ -204,10 +204,8 @@ local function wrapper(instance: Instance,...: string)
         
         for attributeName, value in data do
             
-            local isAttribute = meta.__newindex(self, attributeName, value)
-            if not isAttribute then continue end
-            
             self:listenChange(attributeName):connect(function(newValue) data[attributeName] = newValue end)
+            self[attributeName] = value
         end
         
         return self
