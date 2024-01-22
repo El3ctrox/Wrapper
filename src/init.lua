@@ -1,6 +1,7 @@
 --!strict
 
 --// Packages
+local Collector = require(script.Parent.Collector)
 local Signal = require(script.Parent.Signal)
 type Signal<Param...> = Signal.Signal<Param...>
 
@@ -25,7 +26,7 @@ local function wrapper(instance: Instance,...: string)
     local attributeChangedSignals = {} :: { [string]: Signal<any> }
     local instanceVisualizers = {} :: { [string]: ObjectValue }
     local compoundAttributes = {}
-    local cleaners = {}
+    local collector = Collector()
     
     --[=[
         @within wrapper
@@ -113,10 +114,8 @@ local function wrapper(instance: Instance,...: string)
     ]=]
     function self:cleaner(cleaner: () -> ()): () -> ()
         
-        local function cancel() cleaners[cleaner] = nil end
-        cleaners[cleaner] = cancel
-        
-        return cancel
+        Collector:add(cleaner)
+        return function() Collector:remove(cleaner) end
     end
     --[=[
         @within wrapper
@@ -126,7 +125,7 @@ local function wrapper(instance: Instance,...: string)
     ]=]
     function self:unwrap()
         
-        for cleaner in cleaners do cleaner() end
+        collector:collect()
         for _,tag in tags do instance:RemoveTag(tag) end
         for name, value in instance:GetAttributes() do compoundAttributes[name] = value end
         
@@ -171,24 +170,12 @@ local function wrapper(instance: Instance,...: string)
             then child.roblox :: Instance
             else child
         
-        local cancelClean = self:cleaner(function()
-            
-            if typeof(unwrappedChild) == "thread" then if coroutine.status(unwrappedChild) ~= 'normal' then coroutine.close(unwrappedChild) end
-            elseif typeof(unwrappedChild) == "RBXScriptConnection" then unwrappedChild:Disconnect()
-            elseif typeof(unwrappedChild) == "Instance" then unwrappedChild:Destroy()
-            elseif typeof(unwrappedChild) == "table" then
-                if typeof(rawget(unwrappedChild, "destroy")) == "function" then unwrappedChild:destroy()
-                elseif typeof(rawget(unwrappedChild, "cancel")) == "function" then unwrappedChild:cancel()
-                elseif typeof(rawget(unwrappedChild, "Destroy")) == "function" then unwrappedChild:Destroy()
-                elseif typeof(rawget(unwrappedChild, "Cancel")) == "function" then unwrappedChild:Cancel()
-                end
-            end
-        end)
+        collector:add(child)
         
         if typeof(unwrappedChild) == "Instance" and unwrappedChild.Parent == nil then
             
             unwrappedChild.Parent = instance
-            unwrappedChild:GetPropertyChangedSignal("Parent"):Once(function() cancelClean() end)
+            unwrappedChild:GetPropertyChangedSignal("Parent"):Once(function() collector() end)
         end
         
         return child
