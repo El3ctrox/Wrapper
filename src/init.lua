@@ -114,8 +114,8 @@ local function wrapper(instance: Instance,...: string)
     ]=]
     function self:cleaner(cleaner: () -> ()): () -> ()
         
-        Collector:add(cleaner)
-        return function() Collector:remove(cleaner) end
+        collector:add(cleaner)
+        return function() collector:remove(cleaner) end
     end
     --[=[
         @within wrapper
