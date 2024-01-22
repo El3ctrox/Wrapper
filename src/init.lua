@@ -128,9 +128,9 @@ local function wrapper(instance: Instance,...: string)
         
         for cleaner in cleaners do cleaner() end
         for _,tag in tags do instance:RemoveTag(tag) end
+        for name, value in instance:GetAttributes() do compoundAttributes[name] = value end
         
         local label = tostring(self)
-        table.clear(self)
         
         function meta:__newindex(index: string, value: any)
             
@@ -138,7 +138,7 @@ local function wrapper(instance: Instance,...: string)
         end
         function meta:__index(index: string)
             
-            error(`attempt to read '{index}' on {self}`)
+            return compoundAttributes[index] or error(`attempt to read '{index}' on {self}`)
         end
         function meta:__tostring()
             
