@@ -175,7 +175,7 @@ local function wrapper(instance: Instance,...: string)
         if typeof(unwrappedChild) == "Instance" and unwrappedChild.Parent == nil then
             
             unwrappedChild.Parent = instance
-            unwrappedChild:GetPropertyChangedSignal("Parent"):Once(function() collector() end)
+            unwrappedChild:GetPropertyChangedSignal("Parent"):Once(function() collector:remove(child) end)
         end
         
         return child
